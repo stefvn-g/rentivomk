@@ -15,31 +15,30 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // User
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasIndex(u => u.Email).IsUnique();
             entity.Property(u => u.Role).HasConversion<string>();
         });
 
-        // Vehicle
         modelBuilder.Entity<Vehicle>(entity =>
         {
             entity.Property(v => v.Status).HasConversion<string>();
             entity.Property(v => v.PricePerDay).HasColumnType("decimal(10,2)");
         });
 
-        // Reservation
         modelBuilder.Entity<Reservation>(entity =>
         {
             entity.Property(r => r.Status).HasConversion<string>();
             entity.Property(r => r.TotalPrice).HasColumnType("decimal(10,2)");
 
+            // Deleting a User cascades to their Reservations
             entity.HasOne(r => r.Customer)
                 .WithMany(u => u.Reservations)
                 .HasForeignKey(r => r.CustomerId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
+            // Deleting a Vehicle is restricted if reservations exist
             entity.HasOne(r => r.Vehicle)
                 .WithMany(v => v.Reservations)
                 .HasForeignKey(r => r.VehicleId)

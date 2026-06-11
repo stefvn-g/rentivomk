@@ -54,7 +54,7 @@ We built the backend as a RESTful ASP.NET Core Web API following a service-orien
 - Automatic vehicle status updates tied to reservation state changes
 - Global exception handling middleware for consistent error responses
 - Seed data on first run (admin account + sample vehicles and reservations)
-- Unit tests for all core services
+- Unit tests for all service, repository, and controller layers
 - Swagger UI for interactive API documentation
 
 ---
@@ -67,7 +67,7 @@ We built the backend as a RESTful ASP.NET Core Web API following a service-orien
 - **Password Hashing:** BCrypt.Net
 - **API Docs:** Swagger / OpenAPI
 - **Testing:** xUnit + Moq
-- **Deployment:** Azure
+- **Deployment:** Render (backend), Vercel (frontend), Supabase (database)
 - **CI/CD:** GitHub Actions
 - **Version Control:** Git + GitHub
 
@@ -95,6 +95,13 @@ RentivoMK.Tests/
 ├── ReservationServiceTests.cs
 ├── UserServiceTests.cs
 ├── VehicleServiceTests.cs
+├── AuthControllerTests.cs
+├── UsersControllerTests.cs
+├── VehiclesControllerTests.cs
+├── ReservationsControllerTests.cs
+├── UserRepositoryTests.cs
+├── VehicleRepositoryTests.cs
+├── ReservationRepositoryTests.cs
 └── RentivoMK.Tests.csproj
 ```
 
@@ -170,7 +177,7 @@ cd RentivoMK.Tests
 dotnet test
 ```
 
-All tests use mocked repositories, so no database connection is needed to run them.
+Service and controller tests use mocked repositories. Repository tests use an EF Core in-memory database. No PostgreSQL connection is needed to run any of the tests.
 
 ---
 
@@ -242,15 +249,13 @@ We followed a clean layered architecture to keep concerns separated and the code
 - **DTOs** keep the API contract clean and decouple what gets sent over the wire from the internal database models.
 - **Middleware** provides centralized exception handling, mapping known exception types (like `KeyNotFoundException` or `UnauthorizedAccessException`) to the right HTTP status codes without repeating that logic everywhere.
 
-This separation means we could write all of our unit tests using mocked repositories — no database needed — which keeps the tests fast and reliable.
+This separation means service and controller tests use mocked repositories with no database needed, while repository tests run against an EF Core in-memory database — keeping the entire test suite fast and independent of any external infrastructure.
 
 ---
 
 ## Deployment
 
-The application is deployed on **Azure** using **GitHub Actions** for CI/CD. Every push to the main branch triggers the pipeline, which builds the project, runs the tests, and deploys to Azure automatically.
-
-The `PORT` environment variable is used to configure the server's listening port at runtime (defaults to `8080`), and the database connection string and JWT secret are managed via Azure environment configuration (not stored in source code).
+The backend API is deployed on Render as a Docker-based web service, the frontend is deployed on Vercel, and the database is hosted on Supabase. GitHub Actions handles CI/CD for both repositories — every push to the main branch triggers the pipeline, which builds the project, runs the tests, and prepares the application for deployment. The database connection string and JWT secret are managed via environment variables configured in the Render dashboard and are not stored in source code.
 
 ---
 

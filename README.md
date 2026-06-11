@@ -255,7 +255,7 @@ This separation means service and controller tests use mocked repositories with 
 
 ## Deployment
 
-The backend API is deployed on Render as a Docker-based web service, the frontend is deployed on Vercel, and the database is hosted on Supabase. GitHub Actions handles CI/CD for both repositories — every push to the main branch triggers the pipeline, which builds the project, runs the tests, and prepares the application for deployment. The database connection string and JWT secret are managed via environment variables configured in the Render dashboard and are not stored in source code.
+The backend API is deployed on **Render** as a Docker-based web service, the frontend is deployed on **Vercel**, and the database is hosted on **Supabase**. **GitHub Actions** handles CI/CD for both repositories — every push to the main branch triggers the pipeline, which builds the project, runs the tests, and prepares the application for deployment. The database connection string and JWT secret are managed via environment variables configured in the Render dashboard and are not stored in source code.
 
 ---
 

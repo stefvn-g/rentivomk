@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using RentivoMK.DTOs;
 using RentivoMK.Enums;
@@ -17,7 +18,8 @@ public class VehicleServiceTests
     {
         _vehicleRepoMock = new Mock<IVehicleRepository>();
         _reservationRepoMock = new Mock<IReservationRepository>();
-        _vehicleService = new VehicleService(_vehicleRepoMock.Object, _reservationRepoMock.Object);
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        _vehicleService = new VehicleService(_vehicleRepoMock.Object, _reservationRepoMock.Object, cache);
     }
 
     [Fact]

@@ -12,6 +12,7 @@ public class VehicleRepository : Repository<Vehicle>, IVehicleRepository
 
     public async Task<IEnumerable<Vehicle>> GetAvailableVehiclesAsync()
         => await _context.Vehicles
+            .AsNoTracking()
             .Where(v => v.Status == VehicleStatus.Available)
             .ToListAsync();
 }

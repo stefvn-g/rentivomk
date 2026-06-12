@@ -20,6 +20,7 @@ public class UsersController : ControllerBase
     // GET /api/users — Admin only
     [HttpGet]
     [Authorize(Roles = "Admin")]
+    [ResponseCache(Duration = 30)]
     public async Task<IActionResult> GetAll()
     {
         var users = await _userService.GetAllUsersAsync();
@@ -29,6 +30,7 @@ public class UsersController : ControllerBase
     // GET /api/users/{id} — Admin, Worker
     [HttpGet("{id:int}")]
     [Authorize(Roles = "Admin,Worker")]
+    [ResponseCache(Duration = 30)]
     public async Task<IActionResult> GetById(int id)
     {
         var user = await _userService.GetUserByIdAsync(id);

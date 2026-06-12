@@ -31,6 +31,7 @@ public class ReservationsController : ControllerBase
     // GET /api/reservations — Admin, Worker
     [HttpGet]
     [Authorize(Roles = "Admin,Worker")]
+    [ResponseCache(Duration = 15)]
     public async Task<IActionResult> GetAll()
     {
         var reservations = await _reservationService.GetAllReservationsAsync();
@@ -40,6 +41,7 @@ public class ReservationsController : ControllerBase
     // GET /api/reservations/my — Customer only
     [HttpGet("my")]
     [Authorize(Roles = "Customer")]
+    [ResponseCache(Duration = 15)]
     public async Task<IActionResult> GetMy()
     {
         var userId = GetCurrentUserId();
@@ -49,6 +51,7 @@ public class ReservationsController : ControllerBase
 
     // GET /api/reservations/{id} — Admin, Worker, or owning Customer
     [HttpGet("{id:int}")]
+    [ResponseCache(Duration = 15)]
     public async Task<IActionResult> GetById(int id)
     {
         var reservation = await _reservationService.GetReservationByIdAsync(id);

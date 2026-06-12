@@ -1,4 +1,5 @@
-﻿using RentivoMK.DTOs;
+﻿using Microsoft.Extensions.Caching.Memory;
+using RentivoMK.DTOs;
 using RentivoMK.Enums;
 using RentivoMK.Interfaces;
 using RentivoMK.Models;
@@ -9,29 +10,57 @@ public class VehicleService : IVehicleService
 {
     private readonly IVehicleRepository _vehicleRepository;
     private readonly IReservationRepository _reservationRepository;
+    private readonly IMemoryCache _cache;
+    private const string KeyAll = "vehicles:all:v1";
+    private const string KeyAvailable = "vehicles:available:v1";
 
-    public VehicleService(IVehicleRepository vehicleRepository, IReservationRepository reservationRepository)
+    private static readonly MemoryCacheEntryOptions CacheOptions = new()
+    {
+        AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60),
+        SlidingExpiration = TimeSpan.FromSeconds(15)
+    };
+    public VehicleService(IVehicleRepository vehicleRepository, IReservationRepository reservationRepository, IMemoryCache cache)
     {
         _vehicleRepository = vehicleRepository;
         _reservationRepository = reservationRepository;
+        _cache = cache;
     }
 
     public async Task<IEnumerable<VehicleDto>> GetAllVehiclesAsync()
     {
+        if (_cache.TryGetValue<IEnumerable<VehicleDto>>(KeyAll, out var cached))
+            return cached!;
+
         var vehicles = await _vehicleRepository.GetAllAsync();
-        return vehicles.Select(MapToDto);
+        var dto = vehicles.Select(MapToDto).ToList();
+        _cache.Set(KeyAll, dto, CacheOptions);
+        return dto;
     }
 
     public async Task<IEnumerable<VehicleDto>> GetAvailableVehiclesAsync()
     {
+        if (_cache.TryGetValue<IEnumerable<VehicleDto>>(KeyAvailable, out var cached))
+            return cached!;
+
         var vehicles = await _vehicleRepository.GetAvailableVehiclesAsync();
-        return vehicles.Select(MapToDto);
+        var dto = vehicles.Select(MapToDto).ToList();
+        _cache.Set(KeyAvailable, dto, CacheOptions);
+        return dto;
     }
 
     public async Task<VehicleDto?> GetVehicleByIdAsync(int id)
     {
+        var key = $"vehicles:id:{id}:v1";
+
+        if (_cache.TryGetValue<VehicleDto>(key, out var cached))
+            return cached!;
+
         var vehicle = await _vehicleRepository.GetByIdAsync(id);
-        return vehicle is null ? null : MapToDto(vehicle);
+        if (vehicle is null) return null;
+
+        var dto = MapToDto(vehicle);
+        _cache.Set(key, dto, CacheOptions);
+        return dto;
     }
 
     public async Task<VehicleDto> CreateVehicleAsync(CreateVehicleDto dto)
@@ -49,6 +78,9 @@ public class VehicleService : IVehicleService
         };
 
         await _vehicleRepository.AddAsync(vehicle);
+
+        InvalidateVehicleCaches();
+
         return MapToDto(vehicle);
     }
 
@@ -68,6 +100,8 @@ public class VehicleService : IVehicleService
             vehicle.Status = dto.Status.Value;
 
         await _vehicleRepository.UpdateAsync(vehicle);
+        InvalidateVehicleCaches();
+        _cache.Remove($"vehicles:id:{id}:v1");
     }
 
     public async Task DeleteVehicleAsync(int id)
@@ -84,6 +118,13 @@ public class VehicleService : IVehicleService
             throw new InvalidOperationException("Cannot delete a vehicle with active (Pending or Approved) reservations.");
 
         await _vehicleRepository.DeleteAsync(vehicle);
+        InvalidateVehicleCaches();
+        _cache.Remove($"vehicles:id:{id}:v1");
+    }
+    private void InvalidateVehicleCaches()
+    {
+        _cache.Remove(KeyAll);
+        _cache.Remove(KeyAvailable);
     }
 
     private static VehicleDto MapToDto(Vehicle vehicle) => new VehicleDto

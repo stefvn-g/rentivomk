@@ -39,6 +39,12 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
+builder.Services.AddMemoryCache();
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true; 
+});
+builder.Services.AddOutputCache();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -112,9 +118,11 @@ app.UseSwaggerUI();
 
 app.UseMiddleware<ExceptionMiddleware>();
 
+app.UseResponseCompression();
+app.UseOutputCache();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-
+        
 app.Run();

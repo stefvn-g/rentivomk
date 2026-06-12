@@ -19,6 +19,7 @@ public class VehiclesController : ControllerBase
 
     // GET /api/vehicles — All authenticated
     [HttpGet]
+    [ResponseCache(Duration = 60)]
     public async Task<IActionResult> GetAll()
     {
         var vehicles = await _vehicleService.GetAllVehiclesAsync();
@@ -27,6 +28,7 @@ public class VehiclesController : ControllerBase
 
     // GET /api/vehicles/available — All authenticated
     [HttpGet("available")]
+    [ResponseCache(Duration = 30)]
     public async Task<IActionResult> GetAvailable()
     {
         var vehicles = await _vehicleService.GetAvailableVehiclesAsync();
@@ -35,6 +37,7 @@ public class VehiclesController : ControllerBase
 
     // GET /api/vehicles/{id} — All authenticated
     [HttpGet("{id:int}")]
+    [ResponseCache(Duration = 60)]
     public async Task<IActionResult> GetById(int id)
     {
         var vehicle = await _vehicleService.GetVehicleByIdAsync(id);

@@ -1,4 +1,5 @@
-﻿using Moq;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Moq;
 using RentivoMK.DTOs;
 using RentivoMK.Enums;
 using RentivoMK.Interfaces;
@@ -15,7 +16,8 @@ public class UserServiceTests
     public UserServiceTests()
     {
         _userRepoMock = new Mock<IUserRepository>();
-        _userService = new UserService(_userRepoMock.Object);
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        _userService = new UserService(_userRepoMock.Object, cache);
     }
 
     [Fact]
